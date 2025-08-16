@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>StuBro AI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://esm.sh/reactflow@11.11.4/dist/style.css">
+    
+    <style>
+      :root {
+        --bg-primary: #F9FAFB; /* gray-50 */
+        --bg-secondary: #FFFFFF;
+        --border-primary: #E5E7EB; /* gray-200 */
+        --text-primary: #1F2937; /* gray-800 */
+        --text-secondary: #6B7280; /* gray-500 */
+        --accent-blue: #4F46E5; /* indigo-600 */
+        --accent-orange: #F97316; /* orange-500 */
+      }
+      body {
+        font-family: 'Poppins', sans-serif;
+        background-color: var(--bg-primary);
+        color: var(--text-primary);
+        scroll-behavior: smooth;
+      }
+      .font-inter {
+        font-family: 'Inter', sans-serif;
+      }
+
+      /* --- Pre-loader --- */
+      #loader {
+        position: fixed;
+        inset: 0;
+        z-index: 10000;
+        background: var(--bg-primary);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        transition: opacity 0.5s ease-out, visibility 0.5s ease-out;
+        visibility: visible;
+        opacity: 1;
+      }
+      body.loaded #loader {
+        opacity: 0;
+        visibility: hidden;
+      }
+      .loader-logo {
+        width: 100px;
+        height: 100px;
+        animation: pulse-logo 2s infinite cubic-bezier(0.4, 0, 0.6, 1);
+      }
+      #loader p {
+        margin-top: 15px;
+        font-family: 'Poppins', sans-serif;
+        color: var(--text-secondary);
+        font-weight: 500;
+        letter-spacing: 0.5px;
+        transition: opacity 0.3s;
+      }
+      @keyframes pulse-logo { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.05); opacity: 0.9; } }
+      
+      /* --- Blob Animations --- */
+      @keyframes move-blob-1 { 0% { transform: scale(1) translate(0, 0); } 50% { transform: scale(1.2) translate(100px, -80px); } 100% { transform: scale(1) translate(0, 0); } }
+      @keyframes move-blob-2 { 0% { transform: scale(1) translate(0, 0); } 50% { transform: scale(1.1) translate(-100px, 80px); } 100% { transform: scale(1) translate(0, 0); } }
+
+      /* FAQ Accordion */
+      .faq-accordion summary { display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: background-color 0.2s ease-out; }
+      .faq-accordion summary::-webkit-details-marker { display: none; }
+      .faq-accordion summary .faq-icon { transition: transform 0.3s ease-in-out; }
+      .faq-accordion details[open] summary .faq-icon { transform: rotate(45deg); }
+      .faq-accordion details div { animation: slide-down 0.3s ease-out; }
+      @keyframes slide-down { 0% { opacity: 0; transform: translateY(-10px); } 100% { opacity: 1; transform: translateY(0); } }
+    
+      /* Pulsing Loader for Spinners */
+      .pulsing-loader div { animation: pulse-animation 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite; }
+      .pulsing-loader div:nth-child(1) { animation-delay: -0.45s; }
+      .pulsing-loader div:nth-child(2) { animation-delay: -0.3s; }
+      .pulsing-loader div:nth-child(3) { animation-delay: -0.15s; }
+      @keyframes pulse-animation { 0%, 100% { transform: scale(0.8); opacity: 0.5; } 50% { transform: scale(1.2); opacity: 1; } }
+
+      /* Ken Burns effect for Visual Player */
+      @keyframes ken-burns { 0% { transform: scale(1.05) translate(-1%, 1%); } 100% { transform: scale(1.2) translate(2%, -1%); } }
+      .ken-burns-effect { animation: ken-burns 15s ease-in-out alternate-reverse infinite; }
+    </style>
+  <script type="importmap">
+{
+  "imports": {
+    "@google/genai": "https://esm.sh/@google/genai@^1.11.0",
+    "react/": "https://esm.sh/react@^19.1.0/",
+    "react": "https://esm.sh/react@^19.1.0",
+    "react-router-dom": "https://esm.sh/react-router-dom@^7.7.1",
+    "react-dom/": "https://esm.sh/react-dom@^19.1.0/",
+    "html2canvas": "https://esm.sh/html2canvas@^1.4.1",
+    "pdfjs-dist": "https://esm.sh/pdfjs-dist@4.5.136",
+    "reactflow": "https://esm.sh/reactflow@^11.11.4",
+    "jspdf": "https://esm.sh/jspdf@^3.0.1",
+    "firebase/app": "https://esm.sh/firebase@10.12.3/app",
+    "firebase/auth": "https://esm.sh/firebase@10.12.3/auth",
+    "mammoth": "https://esm.sh/mammoth@1.8.0",
+    "@vitejs/plugin-react": "https://esm.sh/@vitejs/plugin-react@^4.7.0",
+    "vite": "https://esm.sh/vite@^7.0.6"
+  }
+}
+</script>
+</head>
+  <body class="bg-gray-50 text-gray-800 antialiased">
+    <div id="loader">
+      <svg class="loader-logo" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+        <g transform="translate(0, -5)">
+          <circle cx="50" cy="55" r="40" fill="#E0E7FF" stroke="#4F46E5" stroke-width="4"></circle>
+          <circle cx="35" cy="50" r="6" fill="#4F46E5"></circle>
+          <circle cx="65" cy="50" r="6" fill="#4F46E5"></circle>
+          <path d="M 35 68 Q 50 80 65 68" stroke="#4F46E5" stroke-width="4" fill="none" stroke-linecap="round"></path>
+          <line x1="50" y1="15" x2="50" y2="5" stroke="#4F46E5" stroke-width="4" stroke-linecap="round"></line>
+          <circle cx="50" cy="5" r="5" fill="#F97316"></circle>
+        </g>
+      </svg>
+      <p id="loader-text">Waking up StuBro...</p>
+    </div>
+    <div id="root"></div>
+    <script>
+      // Polyfill `process` for browser environments. This is required for the
+      // geminiService to not crash when checking for `process.env.API_KEY`.
+      if (typeof process === 'undefined') {
+        window.process = { env: {} };
+      }
+    </script>
+    <script type="module" src="/index.tsx"></script>
+  </body>
+</html>
